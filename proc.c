@@ -255,6 +255,53 @@ wait(int* status)
   }
 }
 
+// More advanced wait syscall
+// Waits for a specific PID, is nonblocking
+// returns id of terminated process
+int waitpid(int pid, int *status, int options) {
+    struct proc *p;
+    int exists = 0;
+
+    acquire(&ptable.lock);
+    for(;;){
+        // Scan through table looking for proc with our pid. 
+        for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+            if(p->pid == pid) {
+                // Found it.
+                exists = 1;
+
+                // Don't do anything if it's still running.
+                if(p->state != ZOMBIE) break;
+
+                kfree(p->kstack);
+                p->kstack = 0;
+                freevm(p->pgdir);
+                p->state = UNUSED;
+                p->pid = 0;
+                p->parent = 0;
+                p->name[0] = 0;
+                p->killed = 0;
+
+                // return process status
+                if(status != NULL) *status = p->status;
+                p->status = 0;
+
+                release(&ptable.lock);
+                return pid;
+            }
+        }
+
+        // No point waiting if it doesn't exist.
+        if(!exists || proc->killed){
+            release(&ptable.lock);
+            return -1;
+        }
+
+        // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+        sleep(proc, &ptable.lock);  //DOC: wait-sleep
+    }
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.

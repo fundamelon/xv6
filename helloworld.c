@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
         printf(1, "Child\n");
         exit(0);
     } else {
-        wait(NULL);
+        waitpid(pid, NULL, 0);
         printf(1, "Parent\n");
     }
     exit(0);
