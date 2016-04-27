@@ -16,7 +16,8 @@ int
 sys_exit(void)
 {
   int status;
-  exit(argint(0, &status));
+  argptr(0, (void*)&status, sizeof(status));
+  exit(status);
   return 0;  // not reached
 }
 
@@ -24,7 +25,7 @@ int
 sys_wait(void)
 {
   int status_ptr;
-  argint(0, &status_ptr);
+  argptr(0, (void*)&status_ptr, sizeof(status_ptr));
   return wait((int*)status_ptr);
 }
 
@@ -32,9 +33,10 @@ int sys_waitpid(void) {
     int pid;
     int status_ptr;
     int options;
-    argint(0, &pid);
-    argint(1, &status_ptr);
-    argint(2, &options);
+    argptr(0, (void*)&pid, sizeof(pid));
+    argptr(1, (void*)&status_ptr, sizeof(status_ptr));
+    argptr(2, (void*)&options, sizeof(options));
+
     return waitpid(pid, (int*)status_ptr, options);
 }
 

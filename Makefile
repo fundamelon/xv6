@@ -171,6 +171,8 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_helloworld\
+	_wait_one\
+	_wait_more\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

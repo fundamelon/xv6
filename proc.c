@@ -258,7 +258,7 @@ wait(int* status)
 // More advanced wait syscall
 // Waits for a specific PID, is nonblocking
 // returns id of terminated process
-int waitpid(int pid, int *status, int options) {
+int waitpid(int pid, int* status, int options) {
     struct proc *p;
     int exists = 0;
 
@@ -297,7 +297,7 @@ int waitpid(int pid, int *status, int options) {
             return -1;
         }
 
-        // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+        // Wait for the process to exit.  (See wakeup1 call in proc_exit.)
         sleep(proc, &ptable.lock);  //DOC: wait-sleep
     }
 }
