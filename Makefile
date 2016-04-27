@@ -171,6 +171,8 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_helloworld\
+	_prio_test\
+	_prio_test2\
 	_wait_one\
 	_wait_more\
 

@@ -302,6 +302,13 @@ int waitpid(int pid, int* status, int options) {
     }
 }
 
+
+// change process priority
+int change_priority(int priority) {
+    return 0;
+}
+
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.

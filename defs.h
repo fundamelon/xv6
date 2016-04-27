@@ -117,7 +117,8 @@ int             wait(int*); // now takes a pointer to exit status
 void            wakeup(void*);
 void            yield(void);
 
-int             waitpid(int, int*, int); // more advanced wait syscall
+int             waitpid(int, int*, int); // more advanced wait 
+int             change_priority(int); // change process priority
 
 // swtch.S
 void            swtch(struct context**, struct context*);
