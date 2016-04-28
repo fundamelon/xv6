@@ -305,6 +305,8 @@ int waitpid(int pid, int* status, int options) {
 
 // change process priority
 int change_priority(int priority) {
+    if(priority < 0 || priority > 63) exit(-1); 
+    proc->priority = priority;
     return 0;
 }
 

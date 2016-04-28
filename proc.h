@@ -69,6 +69,7 @@ struct proc {
 
   // begin new work
   int status;                  // exit status
+  int priority;                // priority for new scheduler
 };
 
 // Process memory is laid out contiguously, low addresses first:
