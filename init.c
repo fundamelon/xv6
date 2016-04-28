@@ -12,7 +12,7 @@ main(void)
 {
   int pid, wpid;
 
-  change_priority(63);
+  change_priority(61);
 
   if(open("console", O_RDWR) < 0){
     mknod("console", 1, 1);

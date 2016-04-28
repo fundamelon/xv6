@@ -239,6 +239,9 @@ wait(int* status)
         if(status != NULL) *status = p->status;
         p->status = 0;
 
+        // reset priority
+        p->priority = 0;
+
         release(&ptable.lock);
         return pid;
       }
@@ -286,6 +289,9 @@ int waitpid(int pid, int* status, int options) {
                 if(status != NULL) *status = p->status;
                 p->status = 0;
 
+                // reset priority
+                p->priority = 0;
+
                 release(&ptable.lock);
                 return pid;
             }
@@ -328,6 +334,40 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+    // --- NEW SCHEDULER ---
+    
+    acquire(&ptable.lock);
+
+    int found = 0;
+    struct proc *highest_proc;
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p->state != RUNNABLE)
+            continue;
+
+
+        if(highest_proc->priority < p->priority || !found) {
+            found = 1;
+            highest_proc = p;
+        }
+    }
+
+    if(found) {
+        // switch to highest priority process
+        proc = highest_proc;
+        switchuvm(highest_proc);
+        highest_proc->state = RUNNING;
+        swtch(&cpu->scheduler, proc->context);
+        switchkvm();
+
+        // process done
+        proc = 0;
+    }
+
+    release(&ptable.lock);
+
+    // --- OLD SCHEDULER ---
+    /*
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -348,6 +388,7 @@ scheduler(void)
       proc = 0;
     }
     release(&ptable.lock);
+    */
 
   }
 }
