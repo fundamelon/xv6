@@ -143,6 +143,7 @@ fork(void)
     return -1;
   }
   np->sz = proc->sz;
+  np->priority = proc->priority; // pass on priority
   np->parent = proc;
   *np->tf = *proc->tf;
 
@@ -311,8 +312,27 @@ int waitpid(int pid, int* status, int options) {
 
 // change process priority
 int change_priority(int priority) {
+    struct proc *p;
+
+    // update priority field
     if(priority < 0 || priority > 63) exit(-1); 
     proc->priority = priority;
+
+    // check ready list for a higher priority process
+    acquire(&ptable.lock);
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if(p->state != RUNNABLE)
+            continue;
+
+        // unschedule this process
+        if(p->priority > priority) {
+            panic("PRIORITY COLLISION");
+        }
+    }
+
+    release(&ptable.lock);
+
     return 0;
 }
 
