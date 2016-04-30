@@ -7,7 +7,8 @@ int main(int argc, char** argv) {
     while(i < 10) {
         int pid = fork();
         if(pid == 0) {
-            printf(1, "-");
+            change_priority(33);
+            printf(1, "PID: %d ran\n", getpid());
             exit(0);
         }
         
@@ -20,9 +21,9 @@ int main(int argc, char** argv) {
     int status;
     i = 0;
     while(i < 10) {
-        waitpid(pids[i], &status, 0);
+        int pid = wait(&status);
         if(status != 0) exit(status);
-        else printf(1, "Child PID: %d exited with status %d\n", pids[i], status);
+        else printf(1, "Child PID: %d exited with status %d\n", pid, status);
         i++;
     }
 

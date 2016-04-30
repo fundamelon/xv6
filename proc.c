@@ -143,7 +143,7 @@ fork(void)
     return -1;
   }
   np->sz = proc->sz;
-  np->priority = proc->priority; // pass on priority
+  np->priority = 10; // default priority
   np->parent = proc;
   *np->tf = *proc->tf;
 
@@ -240,9 +240,6 @@ wait(int* status)
         if(status != NULL) *status = p->status;
         p->status = 0;
 
-        // reset priority
-        p->priority = 0;
-
         release(&ptable.lock);
         return pid;
       }
@@ -290,9 +287,6 @@ int waitpid(int pid, int* status, int options) {
                 if(status != NULL) *status = p->status;
                 p->status = 0;
 
-                // reset priority
-                p->priority = 0;
-
                 release(&ptable.lock);
                 return pid;
             }
@@ -312,26 +306,37 @@ int waitpid(int pid, int* status, int options) {
 
 // change process priority
 int change_priority(int priority) {
+
     struct proc *p;
+
+    acquire(&ptable.lock);
 
     // update priority field
     if(priority < 0 || priority > 63) exit(-1); 
     proc->priority = priority;
 
+    int d;
+    d = proc->priority;
+
     // check ready list for a higher priority process
-    acquire(&ptable.lock);
+    int highest = 1;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if(p->state != RUNNABLE)
             continue;
 
-        // unschedule this process
-        if(p->priority > priority) {
-            panic("PRIORITY COLLISION");
+        // yield if superceded by another 
+        if(p->priority > proc->priority) {
+            highest = 0;
+            release(&ptable.lock);
+            //yield();
+            return 0;
         }
     }
 
-    release(&ptable.lock);
+    // carry on if still highest priority
+    if(highest) release(&ptable.lock);
+   //     yield();
 
     return 0;
 }
@@ -358,21 +363,22 @@ scheduler(void)
     
     acquire(&ptable.lock);
 
-    int found = 0;
     struct proc *highest_proc;
+    int highest_priority = -1;
 
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    for(p = &ptable.proc[NPROC]-1; p >= ptable.proc; p--) {
+    //for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if(p->state != RUNNABLE)
             continue;
 
 
-        if(highest_proc->priority < p->priority || !found) {
-            found = 1;
+        if((highest_priority < 0) || (highest_proc->priority < p->priority)) {
+            highest_priority = p->priority;
             highest_proc = p;
         }
     }
 
-    if(found) {
+    if(highest_priority >= 0) {
         // switch to highest priority process
         proc = highest_proc;
         switchuvm(highest_proc);
